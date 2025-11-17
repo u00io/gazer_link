@@ -10,7 +10,9 @@ import (
 func OnCall(form *gazerlink.Form) *gazerlink.Form {
 	val := form.GetFieldString("p1")
 	fmt.Println("example00: OnCall received p1 =", val)
-	return form
+	response := gazerlink.NewForm()
+	response.SetFieldString("p1", "["+val+"]")
+	return response
 }
 
 func Run() {
