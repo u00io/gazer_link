@@ -185,7 +185,7 @@ func (c *Client) Call(form *Form, timeout time.Duration) (*Form, error) {
 	sent := 0
 	for sent < int(frameLength) {
 		var n int
-		n, err = c.conn.Write(frameBuffer[sent:])
+		n, err = conn.Write(frameBuffer[sent:])
 		if err != nil {
 			req.err = err
 			req.done = true
