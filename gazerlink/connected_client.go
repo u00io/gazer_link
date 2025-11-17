@@ -61,6 +61,11 @@ func (c *ConnectedClient) thWork() {
 		if err != nil {
 			break
 		}
+
+		if inputBufferIndex+n > len(inputBuffer) {
+			break
+		}
+
 		copy(inputBuffer[inputBufferIndex:], buffer[0:n])
 		inputBufferIndex += n
 
@@ -84,6 +89,7 @@ func (c *ConnectedClient) thWork() {
 			break
 		}
 		c.ProcessFrame(form)
+
 		// Shift remaining data to the beginning of the buffer
 		copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
 		inputBufferIndex -= frameLength

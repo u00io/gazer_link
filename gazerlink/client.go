@@ -85,6 +85,10 @@ func (c *Client) thWork() {
 			continue
 		}
 
+		if inputBufferIndex+n > len(inputBuffer) {
+			break
+		}
+
 		copy(inputBuffer[inputBufferIndex:], buffer[0:n])
 		inputBufferIndex += n
 
