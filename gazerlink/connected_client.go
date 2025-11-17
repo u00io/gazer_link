@@ -109,6 +109,10 @@ func (c *ConnectedClient) thWork() {
 func (c *ConnectedClient) ProcessFrame(form *Form) {
 	responseForm := c.onCall(form)
 	responseForm.SetFieldString("_transaction_id", form.GetFieldString("_transaction_id"))
+	noResponse := form.GetFieldBool("_no_response")
+	if noResponse {
+		return
+	}
 	c.SendForm(responseForm)
 }
 
