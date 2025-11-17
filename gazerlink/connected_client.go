@@ -88,7 +88,7 @@ func (c *ConnectedClient) thWork() {
 		if err != nil {
 			break
 		}
-		c.ProcessFrame(form)
+		go c.ProcessFrame(form)
 
 		// Shift remaining data to the beginning of the buffer
 		copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])

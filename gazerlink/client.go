@@ -50,7 +50,7 @@ func (c *Client) Stop() {
 func (c *Client) thWork() {
 	var conn net.Conn
 	var err error
-	inputBuffer := make([]byte, 100*1024)
+	inputBuffer := make([]byte, 4*1024*1024)
 	inputBufferIndex := 0
 	connectionInfo := c.ipAddr + ":" + fmt.Sprint(c.port)
 	for {
@@ -120,7 +120,7 @@ func (c *Client) thWork() {
 		if err != nil {
 			break
 		}
-		c.ProcessFrame(form)
+		go c.ProcessFrame(form)
 		copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
 		inputBufferIndex -= frameLength
 	}
