@@ -31,7 +31,9 @@ func thClient() {
 func Run() {
 	aesKeyHex := "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
-	srv := gazerlink.NewServer(aesKeyHex, 3210)
+	srv := gazerlink.NewServer(aesKeyHex, 3210, func(form *gazerlink.Form) *gazerlink.Form {
+		return form
+	})
 	srv.Start()
 
 	for i := 0; i < 1000; i++ {

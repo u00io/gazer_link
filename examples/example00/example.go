@@ -7,10 +7,16 @@ import (
 	"github.com/u00io/gazer_link/gazerlink"
 )
 
+func OnCall(form *gazerlink.Form) *gazerlink.Form {
+	val := form.GetFieldString("p1")
+	fmt.Println("example00: OnCall received p1 =", val)
+	return form
+}
+
 func Run() {
 	aesKeyHex := "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
-	srv := gazerlink.NewServer(aesKeyHex, 3210)
+	srv := gazerlink.NewServer(aesKeyHex, 3210, OnCall)
 	srv.Start()
 
 	time.Sleep(500 * time.Millisecond)

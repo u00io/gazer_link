@@ -10,6 +10,7 @@ import (
 type Server struct {
 	mtx          sync.Mutex
 	nextClientId uint64
+	onCall       func(*Form) *Form
 
 	aesKeyHex string
 	port      int
@@ -17,8 +18,9 @@ type Server struct {
 	clients   map[uint64]*ConnectedClient
 }
 
-func NewServer(aesKeyHex string, port int) *Server {
+func NewServer(aesKeyHex string, port int, onCall func(*Form) *Form) *Server {
 	var c Server
+	c.onCall = onCall
 	c.aesKeyHex = aesKeyHex
 	c.port = port
 	c.clients = make(map[uint64]*ConnectedClient)
@@ -78,7 +80,7 @@ func (c *Server) handleConnection(conn net.Conn) {
 	c.nextClientId++
 	c.mtx.Unlock()
 
-	cn := NewConnectedClient(cnId, conn, c.aesKeyHex)
+	cn := NewConnectedClient(cnId, conn, c.aesKeyHex, c.onCall)
 
 	c.mtx.Lock()
 	c.clients[cnId] = cn

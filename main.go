@@ -1,7 +1,7 @@
 package main
 
-import "github.com/u00io/gazer_link/examples/example01"
+import "github.com/u00io/gazer_link/examples/example00"
 
 func main() {
-	example01.Run()
+	example00.Run()
 }

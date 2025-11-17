@@ -9,6 +9,7 @@ import (
 )
 
 type ConnectedClient struct {
+	onCall    func(*Form) *Form
 	mtx       sync.Mutex
 	id        uint64
 	conn      net.Conn
@@ -16,12 +17,13 @@ type ConnectedClient struct {
 	aesKey    []byte
 }
 
-func NewConnectedClient(id uint64, conn net.Conn, aesKeyHex string) *ConnectedClient {
+func NewConnectedClient(id uint64, conn net.Conn, aesKeyHex string, onCall func(*Form) *Form) *ConnectedClient {
 	var c ConnectedClient
 	c.id = id
 	c.conn = conn
 	c.aesKeyHex = aesKeyHex
 	c.aesKey, _ = hex.DecodeString(aesKeyHex)
+	c.onCall = onCall
 	return &c
 }
 
@@ -99,7 +101,8 @@ func (c *ConnectedClient) thWork() {
 }
 
 func (c *ConnectedClient) ProcessFrame(form *Form) {
-	c.SendForm(form)
+	responseForm := c.onCall(form)
+	c.SendForm(responseForm)
 }
 
 func (c *ConnectedClient) SendForm(form *Form) error {
