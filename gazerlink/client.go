@@ -200,18 +200,23 @@ func (c *Client) Call(form *Form, timeout time.Duration) (*Form, error) {
 	}
 
 	// Wait for response
-	startTime := time.Now()
-	for {
-		c.mtx.Lock()
-		if req.done {
+	if timeout == 0 {
+		startTime := time.Now()
+		for {
+			c.mtx.Lock()
+			if req.done {
+				c.mtx.Unlock()
+				break
+			}
 			c.mtx.Unlock()
-			break
+			if time.Since(startTime) > timeout {
+				c.mtx.Lock()
+				delete(c.requests, transactionId)
+				c.mtx.Unlock()
+				return nil, fmt.Errorf("timeout")
+			}
+			time.Sleep(1 * time.Millisecond)
 		}
-		c.mtx.Unlock()
-		if time.Since(startTime) > timeout {
-			return nil, fmt.Errorf("timeout")
-		}
-		time.Sleep(1 * time.Millisecond)
 	}
 
 	c.mtx.Lock()
