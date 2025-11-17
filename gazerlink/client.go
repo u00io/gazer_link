@@ -200,7 +200,7 @@ func (c *Client) Call(form *Form, timeout time.Duration) (*Form, error) {
 	}
 
 	// Wait for response
-	if timeout == 0 {
+	if timeout > 0 {
 		startTime := time.Now()
 		for {
 			c.mtx.Lock()
