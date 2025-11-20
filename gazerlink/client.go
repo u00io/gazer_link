@@ -92,37 +92,44 @@ func (c *Client) thWork() {
 		copy(inputBuffer[inputBufferIndex:], buffer[0:n])
 		inputBufferIndex += n
 
+		criticalError := false
+
 		// Parse frame
-		if inputBufferIndex < 4 {
-			continue
-		}
+		for inputBufferIndex >= 4 {
 
-		frameLength := int(binary.LittleEndian.Uint32(inputBuffer[0:4]))
-		if frameLength > 1024*1024 {
-			break
-		}
-		if inputBufferIndex < frameLength {
-			continue
-		}
+			frameLength := int(binary.LittleEndian.Uint32(inputBuffer[0:4]))
+			if frameLength > 1024*1024 {
+				criticalError = true
+				break
+			}
+			if inputBufferIndex < frameLength {
+				break
+			}
 
-		if frameLength < 4 {
-			fmt.Println("Client::thWork: invalid frame length:", frameLength)
-			break
-		}
+			if frameLength < 4 {
+				fmt.Println("Client::thWork: invalid frame length:", frameLength)
+				criticalError = true
+				break
+			}
 
-		frameData := inputBuffer[4:frameLength]
-		decryptedFrameData, err := DecryptAESGCM(frameData, c.aesKey)
-		if err != nil {
-			fmt.Println("Client::thWork: DecryptAESGCM error:", err)
+			frameData := inputBuffer[4:frameLength]
+			decryptedFrameData, err := DecryptAESGCM(frameData, c.aesKey)
+			if err != nil {
+				criticalError = true
+				break
+			}
+			form, err := ParseForm(decryptedFrameData)
+			if err != nil {
+				criticalError = true
+				break
+			}
+			go c.ProcessFrame(form)
+			copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
+			inputBufferIndex -= frameLength
+		}
+		if criticalError {
 			break
 		}
-		form, err := ParseForm(decryptedFrameData)
-		if err != nil {
-			break
-		}
-		go c.ProcessFrame(form)
-		copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
-		inputBufferIndex -= frameLength
 	}
 	fmt.Println("Client::thWork disconnected from", connectionInfo)
 	c.mtx.Lock()
