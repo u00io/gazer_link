@@ -69,31 +69,36 @@ func (c *ConnectedClient) thWork() {
 		copy(inputBuffer[inputBufferIndex:], buffer[0:n])
 		inputBufferIndex += n
 
+		criticalError := false
+
 		// Parse frame
-		if inputBufferIndex < 4 {
-			continue
-		}
+		for inputBufferIndex > 4 {
+			frameLength := int(binary.LittleEndian.Uint32(inputBuffer[0:4]))
+			if inputBufferIndex < frameLength {
+				break
+			}
 
-		frameLength := int(binary.LittleEndian.Uint32(inputBuffer[0:4]))
-		if inputBufferIndex < frameLength {
-			continue
-		}
+			frameData := inputBuffer[4:frameLength]
+			decryptedFrameData, err := DecryptAESGCM(frameData, c.aesKey)
+			if err != nil {
+				criticalError = true
+				break
+			}
+			form, err := ParseForm(decryptedFrameData)
+			if err != nil {
+				criticalError = true
+				break
+			}
 
-		frameData := inputBuffer[4:frameLength]
-		decryptedFrameData, err := DecryptAESGCM(frameData, c.aesKey)
-		if err != nil {
+			go c.ProcessFrame(form)
+
+			// Shift remaining data to the beginning of the buffer
+			copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
+			inputBufferIndex -= frameLength
+		}
+		if criticalError {
 			break
 		}
-		form, err := ParseForm(decryptedFrameData)
-		if err != nil {
-			break
-		}
-		go c.ProcessFrame(form)
-
-		// Shift remaining data to the beginning of the buffer
-		copy(inputBuffer[0:], inputBuffer[frameLength:inputBufferIndex])
-		inputBufferIndex -= frameLength
-
 	}
 
 	c.mtx.Lock()
