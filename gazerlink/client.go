@@ -24,6 +24,8 @@ type Client struct {
 	ipAddr    string
 	port      int
 
+	started bool
+
 	transactionCounter uint64
 
 	requests map[string]*Request
@@ -40,6 +42,9 @@ func NewClient(aesKeyHex string, ipAddr string, port int) *Client {
 }
 
 func (c *Client) Start() {
+	if c.started {
+		return
+	}
 	go c.thWork()
 }
 
@@ -48,6 +53,11 @@ func (c *Client) Stop() {
 }
 
 func (c *Client) thWork() {
+	c.started = true
+	defer func() {
+		c.started = false
+	}()
+
 	var conn net.Conn
 	var err error
 	inputBuffer := make([]byte, 4*1024*1024)

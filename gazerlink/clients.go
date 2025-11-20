@@ -23,5 +23,6 @@ func GetClientClient(aesKeyHex, address string, port int) *Client {
 	}
 	c = NewClient(aesKeyHex, address, port)
 	clients[key] = c
+	c.Start()
 	return c
 }
